@@ -1,0 +1,5 @@
+[base]
+server_url = "http://localhost:8001"
+server_description = "Local development server"
+api_title="Terramo Project"
+api_description="Terramo Description"

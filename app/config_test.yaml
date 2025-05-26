@@ -1,0 +1,9 @@
+name: "MyApp"
+log:
+  level: "DEBUG"
+  format: "[%(asctime)s] %(levelname)s [%(name)s] %(message)s"
+database:
+  engine: "mysql"
+  dsn: "127.0.0.1:3306/terramodb"
+  username: "root"
+  password: "D34dC4lm"

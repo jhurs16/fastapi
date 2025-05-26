@@ -1,0 +1,28 @@
+version: '3.1'
+
+services:
+  db:
+    image: mysql
+    restart: always
+    ports:
+      - "3333:3306" # add external port
+    environment:
+      MYSQL_ROOT_PASSWORD: simple_passme
+      MYSQL_DATABASE: TER1
+    volumes:
+      - db-data:/var/lib/mysql
+
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80" # Adjust the port as necessary. This maps port 8080 on your host to port 80 on the container.
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: simple_passme
+
+volumes:
+  db-data:
+    # Using local volume instead of Azure file share

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Visual Embedding</title>
+
+    <!-- ✅ Load Power BI SDK with defer to ensure proper execution order -->
+
+    <script defer src="https://cdn.jsdelivr.net/npm/powerbi-client@2.21.0/dist/powerbi.min.js"></script>
+
+
+
+    <script>
+        async function waitForPowerBISDK() {
+            let attempts = 0, maxAttempts = 10;
+            while (typeof window.powerbi === "undefined") {
+                if (attempts >= maxAttempts) {
+                    console.error("🚨 Power BI SDK did not load. Check the script source!");
+                    return false;
+                }
+                console.log(`🔄 Attempt ${attempts + 1} - Waiting for Power BI SDK...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+            }
+            console.log("✅ Power BI SDK Loaded!");
+            return true;
+        }
+
+        async function fetchEmbedInfo() {
+            try {
+                console.log("🔄 Fetching Embed Info...");
+                const response = await fetch("http://127.0.0.1:5000/getembedinfo");
+                if (!response.ok) throw new Error("❌ Failed to fetch embed info");
+                return await response.json();
+            } catch (error) {
+                console.error("⚠️ API Request Failed!", error);
+                return null;
+            }
+        }
+
+        async function initializePowerBI() {
+            console.log("🔄 Initializing Power BI...");
+
+            // Ensure Power BI SDK is loaded
+            const sdkLoaded = await waitForPowerBISDK();
+            if (!sdkLoaded) return;
+
+            // Log the entire powerbi object
+            // console.log("🔍 Full Power BI Object:", window.powerbi);
+            // console.log("🔍 Full Power BI Object:", JSON.stringify(window.powerbi, null, 2));
+            console.log("🔍 Full Power BI Object:", window.powerbi);
+            console.dir(window.powerbi);  // ✅ Shows an interactive object in console
+
+
+
+            // Check if models exist
+            if (!window.powerbi.models) {
+                console.error("🚨 Power BI models are undefined! SDK might be corrupted.");
+                return;
+            }
+
+            // Fetch Embed Info
+            let data = await fetchEmbedInfo();
+            if (!data || !data.embedUrl || !data.accessToken || !data.reportId) {
+                console.error("❌ Missing required values in API response!");
+                return;
+            }
+
+            console.log("🚀 API Response:", data);
+
+            // Embed Configuration
+            const embedConfig = {
+                type: "report",
+                id: data.reportId,
+                embedUrl: data.embedUrl,
+                accessToken: data.accessToken,
+                tokenType: window.powerbi.models.TokenType.Embed,
+                settings: { filterPaneEnabled: false, navContentPaneEnabled: false }
+            };
+
+            console.log("✅ Embed Config:", embedConfig);
+
+            // Check if the report container exists
+            const reportContainer = document.getElementById("reportContainer");
+            if (!reportContainer) {
+                console.error("🚨 Report container not found in the DOM!");
+                return;
+            }
+
+            console.log("🎯 Resetting and embedding Power BI report...");
+            window.powerbi.reset(reportContainer);
+            window.powerbi.embed(reportContainer, embedConfig);
+
+            console.log("🎉 Power BI Report Embedded Successfully!");
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <h1>Power BI Visual Embedding</h1>
+    <div id="reportContainer" style="width: 800px; height: 600px;"></div>
+
+    <!-- ✅ Ensures Power BI is initialized after the page is fully loaded -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("📌 Document Ready - Starting Power BI Embedding...");
+            initializePowerBI();
+        });
+    </script>
+</body>
+
+</html>
